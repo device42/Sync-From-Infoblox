@@ -1,4 +1,5 @@
 import sys
+import os
 import json
 import time
 import netaddr
@@ -9,37 +10,12 @@ import ConfigParser
 import Queue
 import base64 
 
-__version__ = '1.0'
+
+__version__ = '1.1'
 
 
-# Infoblox connection params
-BLOX_HOST = '192.168.3.50'
-BLOX_USER  = 'admin'
-BLOX_PASS  = 'infoblox'
-BLOX_URL    = 'https://'+BLOX_HOST+'/wapi/v1.2/'
-
-# Device42 upload settings  #
-D42_USER   = 'admin'
-D42_PWD    = 'adm!nd42'
-D42_URL     = 'https://192.168.3.30'
-DRY_RUN     = False
-
-
-# Target network. If None, scipt will fetch ALL! networks. 
-# If entered, target network must be in CIDR notation. In that case, script will fetch data for that network only.
-# Multiple CIDR blocks can be entered, separated by commas.
-#TARGET_NETWORKS = ['172.16.0.0/16']
-TARGET_NETWORKS = ['192.168.3.0/24']
-#TARGET_NETWORKS = ['192.168.3.0/24', '192.168.1.0/24','172.16.0.0/16']
-#TARGET_NETWORKS = None
-
-
-# Other
-ADD_COMMENTS_AS_SUBNET_NAME = True
-GET_ASSOCIATED_DEVICE               = True
-DEBUG                = True
-MAX_THREADS     = 20
-IGNORE_DOMAIN   = True  #If you want to strip the domain name part from the hostname.
+DIR = os.path.dirname(__file__)
+CONFIG_FILE = os.path.join(DIR, 'infoblox2device42.cfg')
 
 
 
@@ -79,7 +55,7 @@ class REST():
 
 
     def post_subnet(self, data):
-        if DRY_RUN == False:
+        if not DRY_RUN:
             url = self.base_url+'/api/1.0/subnets/'
             msg =  '\tPosting data to %s' % url
             lock.acquire()
@@ -89,7 +65,7 @@ class REST():
 
 
     def post_ip(self, data, ip):
-        if DRY_RUN == False:
+        if not DRY_RUN:
             url = self.base_url+'/api/ip/'
             msg =  '\tPosting IP %s to %s ' % (ip, url)
             lock.acquire()
@@ -99,7 +75,7 @@ class REST():
 
 
     def post_device(self, data):
-        if DRY_RUN == False:
+        if not DRY_RUN:
             url = self.base_url+'/api/1.0/device/'
             msg =  '\tPosting device data to %s ' % url
             lock.acquire()
@@ -228,8 +204,8 @@ class InfobloxDevices():
         else:
             qstring = 'ipv4address?network=%s&ip_address>=%s&ip_address<=%s&types=FA&types=UNMANAGED&types=RESERVATION&types=HOST&types=A' % (self.network, start, end)
             
-            
-        r = self.session.get(BLOX_URL + qstring)
+
+        r = self.session.get(BLOX_URL+qstring)
         
         if len(r.text) > 2:
             if not 'does not match any network' in r.text:
@@ -268,8 +244,10 @@ class InfobloxDevices():
                 if '.' in name:
                     name = name.split('.')[0]
             self.data_device.update({'name':name})
+            if GET_ASSOCIATED_DEVICE: 
+                self.data_ip.update({'name':name})
         except:
-            name = 'Unknown'
+            name = None
         try:
             mac = device['mac_address']
             if mac not in ('', ' ', '\n'):
@@ -303,9 +281,9 @@ class InfobloxDevices():
                     self.data_device.update({'os':os})
             except:
                 pass
-            
+        print self.data_ip
         self.rest.post_ip(self.data_ip, ip)
-        self.rest.post_device(self.data_device)
+        #self.rest.post_device(self.data_device)
     
 
     def get_os(self, ip, qstring):
@@ -323,6 +301,8 @@ class InfobloxDevices():
                     if '.' in name:
                         name = name.split('.')[0]
                 self.data_device.update({'name':name})
+                if GET_ASSOCIATED_DEVICE:
+                    self.data_ip.update({'device': name})
             except:
                 if not 'name' in self.data_device:
                     self.data_device.update({'name':'Unknown'})
@@ -367,8 +347,44 @@ class TimeConversion():
             return False
 
 
+def read_settings():
+    if not os.path.exists(CONFIG_FILE):
+        msg = '\n[!] Cannot find config file.Exiting...'
+        print msg
+        sys.exit()
+        
+    else:
+        cc = ConfigParser.RawConfigParser()
+        cc.readfp(open(CONFIG_FILE,"r"))
+        
+        # --------------------------------------------------------------------------------------------------------------------------
+        # blox
+        BLOX_HOST = cc.get('blox', 'BLOX_HOST')
+        BLOX_USER = cc.get('blox', 'BLOX_USER')
+        BLOX_PASS = cc.get('blox', 'BLOX_PASS')
+        BLOX_URL   = cc.get('blox', 'BLOX_URL')
+        # D42
+        D42_USER   = cc.get('d42', 'D42_USER')
+        D42_PWD    = cc.get('d42', 'D42_PWD')
+        D42_URL     = cc.get('d42', 'D42_URL')
+        #target
+        TARGET_NETWORKS  = cc.get('target', 'TARGET_NETWORKS')
+        #other
+        ADD_COMMENTS_AS_SUBNET_NAME = cc.getboolean('other', 'ADD_COMMENTS_AS_SUBNET_NAME')
+        GET_ASSOCIATED_DEVICE              = cc.getboolean('other', 'GET_ASSOCIATED_DEVICE')
+        DEBUG                                         = cc.getboolean('other', 'DEBUG')
+        MAX_THREADS                             = cc.get('other', 'MAX_THREADS')
+        IGNORE_DOMAIN                           = cc.getboolean('other', 'IGNORE_DOMAIN')
+        DRY_RUN                                     = cc.getboolean('other', 'DRY_RUN')
+        # --------------------------------------------------------------------------------------------------------------------------
+
+        return   BLOX_HOST, BLOX_USER, BLOX_PASS, BLOX_URL, \
+                    D42_USER, D42_PWD, D42_URL, DRY_RUN, \
+                    TARGET_NETWORKS , ADD_COMMENTS_AS_SUBNET_NAME, \
+                    GET_ASSOCIATED_DEVICE,  DEBUG, MAX_THREADS, IGNORE_DOMAIN
+
 def main():
-    if TARGET_NETWORKS in ('', ' ', '\n', None):
+    if TARGET_NETWORKS in ('', ' ', '\n', 'None'):
         bloxNet = InfobloxNetworks()
         bloxNet.connect()
         print '\n[!] Getting info on networks...\n'
@@ -397,22 +413,26 @@ def main():
                         lock.release()
                     msg =  '\n[!] Done!'
                     break
+
     else:
         bloxNet = InfobloxNetworks()
         bloxNet.connect()
-        
-
-        print '\n[!] Getting info on %d networks...\n' % len(TARGET_NETWORKS)
-        for NET in TARGET_NETWORKS:
+        print '\n[!] Getting info on %d networks...\n' % len(TARGET_NETWORKS.split(','))
+        for NET in TARGET_NETWORKS.split(','):
             print '\n[!] Network %s' % NET
             bloxNet.create_network(NET)
             bloxDevice = InfobloxDevices(NET.strip())
             bloxDevice.dispatch()
         
 
-        
 
-    
 if __name__ == '__main__':
+    
+    BLOX_HOST, BLOX_USER, BLOX_PASS, BLOX_URL, \
+    D42_USER, D42_PWD, D42_URL, DRY_RUN, \
+    TARGET_NETWORKS , ADD_COMMENTS_AS_SUBNET_NAME, \
+    GET_ASSOCIATED_DEVICE,  DEBUG, MAX_THREADS, IGNORE_DOMAIN = read_settings()
+    BLOX_URL = BLOX_URL.replace('BLOX_HOST', BLOX_HOST)
+    
     main()
     sys.exit()
