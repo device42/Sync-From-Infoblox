@@ -27,7 +27,7 @@ class REST():
     def __init__(self):
         self.password = D42_PWD
         self.username = D42_USER
-        self.base_url   = D42_URL
+        self.base_url = D42_URL
         
     def uploader(self, data, url):
         payload = data
@@ -144,16 +144,16 @@ class InfobloxNetworks():
 
 class InfobloxDevices():
     def __init__(self, network):
-        self.session      = None
+        self.session     = None
         self.network     = network
-        self.data_device= {}
-        self.data_ip      = {}
-        self.rest = REST()
+        self.data_device = {}
+        self.data_ip     = {}
+        self.rest        = REST()
         
 
     def connect(self):
-        self.session         = requests.Session()
-        self.session.auth  = (BLOX_USER, BLOX_PASS)
+        self.session        = requests.Session()
+        self.session.auth   = (BLOX_USER, BLOX_PASS)
         self.session.verify = False
 
 
@@ -366,16 +366,16 @@ def read_settings():
         # D42
         D42_USER   = cc.get('d42', 'D42_USER')
         D42_PWD    = cc.get('d42', 'D42_PWD')
-        D42_URL     = cc.get('d42', 'D42_URL')
+        D42_URL    = cc.get('d42', 'D42_URL')
         #target
         TARGET_NETWORKS  = cc.get('target', 'TARGET_NETWORKS')
         #other
         ADD_COMMENTS_AS_SUBNET_NAME = cc.getboolean('other', 'ADD_COMMENTS_AS_SUBNET_NAME')
-        GET_ASSOCIATED_DEVICE              = cc.getboolean('other', 'GET_ASSOCIATED_DEVICE')
-        DEBUG                                         = cc.getboolean('other', 'DEBUG')
-        MAX_THREADS                             = cc.get('other', 'MAX_THREADS')
-        IGNORE_DOMAIN                           = cc.getboolean('other', 'IGNORE_DOMAIN')
-        DRY_RUN                                     = cc.getboolean('other', 'DRY_RUN')
+        GET_ASSOCIATED_DEVICE       = cc.getboolean('other', 'GET_ASSOCIATED_DEVICE')
+        DEBUG                       = cc.getboolean('other', 'DEBUG')
+        MAX_THREADS                 = cc.get('other', 'MAX_THREADS')
+        IGNORE_DOMAIN               = cc.getboolean('other', 'IGNORE_DOMAIN')
+        DRY_RUN                     = cc.getboolean('other', 'DRY_RUN')
         # --------------------------------------------------------------------------------------------------------------------------
 
         return   BLOX_HOST, BLOX_USER, BLOX_PASS, BLOX_URL, \
