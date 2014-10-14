@@ -3,11 +3,12 @@ that integrates centralized password management, impact charts and applications 
 
 This repository contains sample script to take information from a Infoblox install and send it to Device42 appliance using the REST APIs.
 Info gathered from Infoblox:
-    * Subnets
-    * Static IP addresses
-    * MAC addresses
-    * Device names (if detected by Infoblox)
-    * Device OS (if detected by Infoblox)
+
+* Subnets
+* Static IP addresses
+* MAC addresses
+* Device names (if detected by Infoblox)
+* Device OS (if detected by Infoblox)
     
 
 ## Assumptions
