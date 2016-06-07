@@ -26,6 +26,7 @@ Info gathered from Infoblox:
     
 ### Usage
 -----------------------------
+    * Copy infoblox2device42.cfg.sample to infoblox2device42.cfg
     * add D42 URL/credentials
     * add Infoblox DB info/credentials
     * Run the script and enjoy!
