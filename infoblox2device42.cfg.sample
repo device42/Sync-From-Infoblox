@@ -30,3 +30,5 @@ MAX_THREADS                 = 20
 DRY_RUN                     = False
 #If you want to strip the domain name part from the hostname:
 IGNORE_DOMAIN               = False  
+#Use VLAN Description as Device42 Subnet Name (Requires API 2.0 or newer)
+VLAN_DESC_AS_SUBNET_NAME    = False

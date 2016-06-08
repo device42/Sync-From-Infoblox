@@ -104,7 +104,10 @@ class InfobloxNetworks():
         
         if not self.session:
             self.connect()
-        r = self.session.get(BLOX_URL + 'network')
+        if VLAN_DESC_AS_SUBNET_NAME:
+            r = self.session.get(BLOX_URL + 'network?_return_fields=network,extattrs')
+        else:
+            r = self.session.get(BLOX_URL + 'network')
         data = json.loads(r.text)
         if DEBUG:
             lock.acquire()
@@ -129,6 +132,14 @@ class InfobloxNetworks():
                     subnet.update({'name':comment})
                 except:
                     pass
+
+            if VLAN_DESC_AS_SUBNET_NAME:
+                try:
+                    comment = netinfo['extattrs']['VLAN Description']['value']
+                    subnet.update({'name':comment})
+                except:
+                    pass
+
             if subnet:
                 print '[+] Subnet: %s' % network
                 self.rest.post_subnet(subnet)
@@ -148,6 +159,17 @@ class InfobloxNetworks():
             netinfo = json.loads(r.text)
             try:
                 comment = netinfo[0]['comment']
+                subnet.update({'name':comment})
+            except:
+                pass
+
+        if VLAN_DESC_AS_SUBNET_NAME:
+            if not self.session:
+                self.connect()
+            r = self.session.get(BLOX_URL + 'network?_return_fields=network,extattrs&network='+NET)
+            netinfo = json.loads(r.text)
+            try:
+                comment = netinfo[0]['extattrs']['VLAN Description']['value']
                 subnet.update({'name':comment})
             except:
                 pass
@@ -391,12 +413,14 @@ def read_settings():
         MAX_THREADS                 = cc.get('other', 'MAX_THREADS')
         IGNORE_DOMAIN               = cc.getboolean('other', 'IGNORE_DOMAIN')
         DRY_RUN                     = cc.getboolean('other', 'DRY_RUN')
+        VLAN_DESC_AS_SUBNET_NAME    = cc.getboolean('other', 'VLAN_DESC_AS_SUBNET_NAME')
         # --------------------------------------------------------------------------------------------------------------------------
 
         return   BLOX_HOST, BLOX_USER, BLOX_PASS, BLOX_API, BLOX_URL, \
                     D42_USER, D42_PWD, D42_URL, DRY_RUN, \
                     TARGET_NETWORKS , ADD_COMMENTS_AS_SUBNET_NAME, \
-                    GET_ASSOCIATED_DEVICE,  DEBUG, MAX_THREADS, IGNORE_DOMAIN
+                    GET_ASSOCIATED_DEVICE,  DEBUG, MAX_THREADS, IGNORE_DOMAIN, \
+                    VLAN_DESC_AS_SUBNET_NAME
 
 def main():
     if TARGET_NETWORKS in ('', ' ', '\n', 'None'):
@@ -446,7 +470,9 @@ if __name__ == '__main__':
     BLOX_HOST, BLOX_USER, BLOX_PASS, BLOX_API, BLOX_URL, \
     D42_USER, D42_PWD, D42_URL, DRY_RUN, \
     TARGET_NETWORKS , ADD_COMMENTS_AS_SUBNET_NAME, \
-    GET_ASSOCIATED_DEVICE,  DEBUG, MAX_THREADS, IGNORE_DOMAIN = read_settings()
+    GET_ASSOCIATED_DEVICE,  DEBUG, MAX_THREADS, IGNORE_DOMAIN, \
+    VLAN_DESC_AS_SUBNET_NAME = read_settings()
+    
     BLOX_URL = BLOX_URL.replace('BLOX_HOST', BLOX_HOST)
     BLOX_URL = BLOX_URL.replace('BLOX_API', BLOX_API)
     
