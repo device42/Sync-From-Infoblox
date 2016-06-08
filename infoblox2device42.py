@@ -140,6 +140,18 @@ class InfobloxNetworks():
         net, mask = NET.split('/')
         subnet.update({'network':net})
         subnet.update({'mask_bits':mask})
+
+        if ADD_COMMENTS_AS_SUBNET_NAME:
+            if not self.session:
+                self.connect()
+            r = self.session.get(BLOX_URL + 'network?network='+NET)
+            netinfo = json.loads(r.text)
+            try:
+                comment = netinfo[0]['comment']
+                subnet.update({'name':comment})
+            except:
+                pass
+
         self.rest.post_subnet(subnet)
 
 
