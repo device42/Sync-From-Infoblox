@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import sys
 import os
 import json
@@ -362,6 +364,7 @@ def read_settings():
         BLOX_HOST = cc.get('blox', 'BLOX_HOST')
         BLOX_USER = cc.get('blox', 'BLOX_USER')
         BLOX_PASS = cc.get('blox', 'BLOX_PASS')
+        BLOX_API  = cc.get('blox', 'BLOX_API')
         BLOX_URL   = cc.get('blox', 'BLOX_URL')
         # D42
         D42_USER   = cc.get('d42', 'D42_USER')
@@ -378,7 +381,7 @@ def read_settings():
         DRY_RUN                     = cc.getboolean('other', 'DRY_RUN')
         # --------------------------------------------------------------------------------------------------------------------------
 
-        return   BLOX_HOST, BLOX_USER, BLOX_PASS, BLOX_URL, \
+        return   BLOX_HOST, BLOX_USER, BLOX_PASS, BLOX_API, BLOX_URL, \
                     D42_USER, D42_PWD, D42_URL, DRY_RUN, \
                     TARGET_NETWORKS , ADD_COMMENTS_AS_SUBNET_NAME, \
                     GET_ASSOCIATED_DEVICE,  DEBUG, MAX_THREADS, IGNORE_DOMAIN
@@ -428,11 +431,12 @@ def main():
 
 if __name__ == '__main__':
     
-    BLOX_HOST, BLOX_USER, BLOX_PASS, BLOX_URL, \
+    BLOX_HOST, BLOX_USER, BLOX_PASS, BLOX_API, BLOX_URL, \
     D42_USER, D42_PWD, D42_URL, DRY_RUN, \
     TARGET_NETWORKS , ADD_COMMENTS_AS_SUBNET_NAME, \
     GET_ASSOCIATED_DEVICE,  DEBUG, MAX_THREADS, IGNORE_DOMAIN = read_settings()
     BLOX_URL = BLOX_URL.replace('BLOX_HOST', BLOX_HOST)
+    BLOX_URL = BLOX_URL.replace('BLOX_API', BLOX_API)
     
     main()
     sys.exit()

@@ -3,7 +3,8 @@
 BLOX_HOST   = Blox_Host_IP
 BLOX_USER   = Blox_user
 BLOX_PASS   = Blox_password
-BLOX_URL    = https://BLOX_HOST/wapi/v1.2/
+BLOX_API    = v1.2
+BLOX_URL    = https://BLOX_HOST/wapi/BLOX_API/
 
 [d42]
 # Device42 upload settings  #
