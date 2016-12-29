@@ -31,7 +31,7 @@ Info gathered from Infoblox:
     * Add D42 URL/credentials in infoblox2device42.cfg
     * Add Infoblox DB info/credentials in infoblox2device42.cfg
     * Run the script : python infoblox2device42.py
-    * Then script get networks, hosts and get hosts discovered fields ( if exists )
+    * Then script get networks, hosts and each host discovered fields ( if exists )
     * If you have any questions - feel free to reach out to us at support at device42.com
 
     
