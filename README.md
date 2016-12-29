@@ -22,14 +22,16 @@ Info gathered from Infoblox:
 -----------------------------
     * python 2.7.x
     * requests (you can install it with sudo pip install requests or sudo apt-get install python-requests)
-
+    * netaddr (you can install it with sudo pip install netaddr)
     
 ### Usage
 -----------------------------
+    * Install requirements
     * Copy infoblox2device42.cfg.sample to infoblox2device42.cfg
-    * add D42 URL/credentials
-    * add Infoblox DB info/credentials
-    * Run the script and enjoy!
+    * Add D42 URL/credentials in infoblox2device42.cfg
+    * Add Infoblox DB info/credentials in infoblox2device42.cfg
+    * Run the script `python infoblox2device42.py`
+    * Then script check networks, hosts and get hosts discovered fields ( if exists )
     * If you have any questions - feel free to reach out to us at support at device42.com
 
     
