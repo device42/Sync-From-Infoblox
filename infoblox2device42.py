@@ -10,7 +10,7 @@ import requests
 import threading
 import ConfigParser
 import Queue
-import base64 
+import base64
 
 
 __version__ = '1.1'
@@ -30,7 +30,7 @@ class REST():
         self.password = D42_PWD
         self.username = D42_USER
         self.base_url = D42_URL
-        
+
     def uploader(self, data, url):
         payload = data
         headers = {
@@ -53,7 +53,7 @@ class REST():
         lock.acquire()
         msg = str(r.text)
         lock.release()
- 
+
 
 
     def post_subnet(self, data):
@@ -101,13 +101,13 @@ class InfobloxNetworks():
 
     def get_networks(self):
         networks = []
-        
+
         if not self.session:
             self.connect()
         if VLAN_DESC_AS_SUBNET_NAME:
-            r = self.session.get(BLOX_URL + 'network?_return_fields=network,extattrs')
+            r = self.session.get(BLOX_URL + 'network?_return_fields=network,extattrs&_max_results=%s' % BLOX_MAX_RESULTS)
         else:
-            r = self.session.get(BLOX_URL + 'network')
+            r = self.session.get(BLOX_URL + 'network&_max_results=%s' % BLOX_MAX_RESULTS)
         data = json.loads(r.text)
         if DEBUG:
             lock.acquire()
@@ -185,7 +185,7 @@ class InfobloxDevices():
         self.data_device = {}
         self.data_ip     = {}
         self.rest        = REST()
-        
+
 
     def connect(self):
         self.session        = requests.Session()
@@ -197,14 +197,13 @@ class InfobloxDevices():
         for i in xrange(0, len(l), n):
             yield l[i:i+n]
 
-
     def dispatch(self):
         # check network size
         # if larger than 1000, split (Infoblox limit)
         IPs = []
         for ip in netaddr.IPNetwork(self.network).iter_hosts():
             IPs.append(str(ip))
-        
+
         if len(IPs) > 1000:
             pairs = []
             the_list = [IPs[x] for x in xrange(0, len(IPs), 999)]
@@ -220,8 +219,8 @@ class InfobloxDevices():
                 self.get_hosts(start, end)
         else:
             self.get_hosts(None, None)
-            
-        
+
+
     def get_hosts(self,start, end):
         if not start:
             msg = '[!] Retrieving data for network: %s' % self.network
@@ -234,15 +233,15 @@ class InfobloxDevices():
         # check session
         if not self.session:
             self.connect()
-        
+
         if not start:
             qstring = 'ipv4address?network=%s&types=FA&types=UNMANAGED&types=RESERVATION&types=HOST&types=A' % self.network
         else:
             qstring = 'ipv4address?network=%s&ip_address>=%s&ip_address<=%s&types=FA&types=UNMANAGED&types=RESERVATION&types=HOST&types=A' % (self.network, start, end)
-            
+
 
         r = self.session.get(BLOX_URL+qstring)
-        
+
         if len(r.text) > 2:
             if not 'does not match any network' in r.text:
                 data = json.loads(r.text)
@@ -280,7 +279,7 @@ class InfobloxDevices():
                 if '.' in name:
                     name = name.split('.')[0]
             self.data_device.update({'name':name})
-            if GET_ASSOCIATED_DEVICE: 
+            if GET_ASSOCIATED_DEVICE:
                 self.data_ip.update({'name':name})
         except:
             name = None
@@ -300,7 +299,7 @@ class InfobloxDevices():
             self.data_ip.update({'ipaddress':ip})
         except:
             pass
-            
+
         if GET_ASSOCIATED_DEVICE:
             if 'FA' in types :
                 ip = device['ip_address']
@@ -308,7 +307,7 @@ class InfobloxDevices():
             elif 'A' in types:
                 ip = device['ip_address']
                 qstring = 'record:a?ipv4addr=%s&_return_fields=discovered_data' % ip
-                
+
             try:
                 os, ld = self.get_os(ip, qstring)
                 if ld:
@@ -320,15 +319,15 @@ class InfobloxDevices():
         print self.data_ip
         self.rest.post_ip(self.data_ip, ip)
         #self.rest.post_device(self.data_device)
-    
+
 
     def get_os(self, ip, qstring):
         if not self.session:
             self.connect()
-        
+
         r = self.session.get(BLOX_URL + qstring)
         data = json.loads(r.text)
-        
+
         try:
             ddata = data[0]['discovered_data']
             try:
@@ -358,7 +357,7 @@ class InfobloxDevices():
 class TimeConversion():
     def __init__(self):
         pass
-        
+
     def convert(self):
         if TIMESTAMP:
             modifier = TIMESTAMP[-1]
@@ -388,11 +387,11 @@ def read_settings():
         msg = '\n[!] Cannot find config file.Exiting...'
         print msg
         sys.exit()
-        
+
     else:
         cc = ConfigParser.RawConfigParser()
         cc.readfp(open(CONFIG_FILE,"r"))
-        
+
         # --------------------------------------------------------------------------------------------------------------------------
         # blox
         BLOX_HOST = cc.get('blox', 'BLOX_HOST')
@@ -438,7 +437,7 @@ def main():
                         network = q.get()
                         bloxDevice = InfobloxDevices(network)
                         p = threading.Thread(target=bloxDevice.dispatch())
-                        p.start()  
+                        p.start()
                     else:
                         time.sleep(0.5)
                 else:
@@ -462,19 +461,19 @@ def main():
             bloxNet.create_network(NET)
             bloxDevice = InfobloxDevices(NET.strip())
             bloxDevice.dispatch()
-        
+
 
 
 if __name__ == '__main__':
-    
+
     BLOX_HOST, BLOX_USER, BLOX_PASS, BLOX_API, BLOX_URL, \
     D42_USER, D42_PWD, D42_URL, DRY_RUN, \
     TARGET_NETWORKS , ADD_COMMENTS_AS_SUBNET_NAME, \
     GET_ASSOCIATED_DEVICE,  DEBUG, MAX_THREADS, IGNORE_DOMAIN, \
     VLAN_DESC_AS_SUBNET_NAME = read_settings()
-    
+
     BLOX_URL = BLOX_URL.replace('BLOX_HOST', BLOX_HOST)
     BLOX_URL = BLOX_URL.replace('BLOX_API', BLOX_API)
-    
+
     main()
     sys.exit()

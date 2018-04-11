@@ -5,6 +5,7 @@ BLOX_USER   = Blox_user
 BLOX_PASS   = Blox_password
 BLOX_API    = v1.2
 BLOX_URL    = https://BLOX_HOST/wapi/BLOX_API/
+BLOX_MAX_RESULTS = 5000
 
 [d42]
 # Device42 upload settings  #
@@ -13,7 +14,7 @@ D42_PWD    = D42_Password
 D42_URL    = https://D42_SERVER
 
 [target]
-# Target network. If None, scipt will fetch ALL! networks. 
+# Target network. If None, scipt will fetch ALL! networks.
 # If entered, target network must be in CIDR notation. In that case, script will fetch data for that network only.
 # Multiple CIDR blocks can be entered, separated by commas.
 #TARGET_NETWORKS    = 172.16.0.0/16
@@ -29,6 +30,6 @@ DEBUG                       = True
 MAX_THREADS                 = 20
 DRY_RUN                     = False
 #If you want to strip the domain name part from the hostname:
-IGNORE_DOMAIN               = False  
+IGNORE_DOMAIN               = False
 #Use VLAN Description as Device42 Subnet Name (Requires API 2.0 or newer)
 VLAN_DESC_AS_SUBNET_NAME    = False
