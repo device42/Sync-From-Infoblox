@@ -9,7 +9,9 @@ Info gathered from Infoblox:
 * MAC addresses
 * Device names (if detected by Infoblox)
 * Device OS (if detected by Infoblox)
-    
+
+*Please note: This integration is currently community supported. 
+The in-product device and subnet imports or the extensive API available at (api.device42.com) have replaced this as the supported integration method.
 
 ## Assumptions
 -----------------------------
